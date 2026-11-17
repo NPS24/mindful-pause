@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eef3f5">
+<title>Pause — mindful interruption</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #24343b; --muted: #687b82; --paper: #f5f8f8;
+    --card: rgba(255,255,255,.84); --blue: #7ba9b5; --blue-dark: #426f7b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 28px 18px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 15% 15%, #e2eeed 0, transparent 34%),
+                radial-gradient(circle at 90% 85%, #e7edf4 0, transparent 32%), var(--paper);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  main { width: min(100%, 590px); }
+  .top { text-align: center; margin-bottom: 18px; }
+  .mark {
+    width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px;
+    display: grid; place-items: center; background: #dcebe8; color: var(--blue-dark); font-size: 20px;
+  }
+  .eyebrow { text-transform: uppercase; letter-spacing: .17em; font-size: 11px; color: var(--muted); }
+  h1 { font-size: clamp(34px, 7vw, 48px); letter-spacing: -.045em; margin: 7px 0 5px; font-weight: 600; }
+  .subtitle { color: var(--muted); margin: 0; font-size: 15px; }
+  .card {
+    background: var(--card); border: 1px solid rgba(210,224,225,.9); border-radius: 25px;
+    padding: clamp(23px, 5vw, 38px); box-shadow: 0 18px 55px rgba(55,82,91,.08);
+    backdrop-filter: blur(12px); text-align: center;
+  }
+  .step { color: var(--blue-dark); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; }
+  h2 { font-size: clamp(25px, 5vw, 32px); letter-spacing: -.03em; font-weight: 570; line-height: 1.18; margin: 12px 0 9px; }
+  .description { color: var(--muted); line-height: 1.65; font-size: 15px; margin: 0 auto; max-width: 440px; }
+  .breath-area { display: grid; place-items: center; padding: 22px 0 14px; }
+  .orb-wrap { width: 190px; height: 190px; display: grid; place-items: center; position: relative; }
+  .orb {
+    width: 112px; height: 112px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f4fbfa, #b8d7d5 72%);
+    box-shadow: 0 0 0 13px rgba(184,215,213,.18), 0 0 0 27px rgba(184,215,213,.10);
+    transform: scale(.78); transition: transform 4s ease-in-out;
+  }
+  .orb.inhale { transform: scale(1.16); transition-duration: 4s; }
+  .orb.exhale { transform: scale(.78); transition-duration: 6s; }
+  .breath-label { position: absolute; bottom: -4px; color: var(--blue-dark); font-size: 14px; font-weight: 600; }
+  .timer { color: var(--muted); font-size: 13px; min-height: 20px; }
+  .prompt {
+    background: #f0f5f4; border: 1px solid #e0ebea; border-radius: 16px;
+    padding: 18px; margin: 23px 0 0; text-align: left;
+  }
+  .prompt strong { display: block; font-size: 13px; margin-bottom: 6px; }
+  .prompt p { margin: 0; color: #52666d; font-size: 14px; line-height: 1.6; }
+  .quote { font-size: clamp(21px, 4vw, 25px); line-height: 1.45; letter-spacing: -.025em; font-weight: 520; margin: 24px auto; max-width: 430px; }
+  .progress { height: 3px; border-radius: 5px; background: #e8efee; margin: 25px 0 0; overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; background: #8eb8b9; transition: width .5s ease; }
+  .tiny { text-align: center; color: #849399; font-size: 11px; margin-top: 19px; }
+  .hidden { display: none !important; }
+  .final-mark { width: 58px; height: 58px; display: grid; place-items: center; margin: 24px auto 18px; border-radius: 50%; background: #e0eeea; color: #426f7b; font-size: 27px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="mark" aria-hidden="true">◌</div>
+    <div class="eyebrow">A mindful interruption</div>
+    <h1>Pause.</h1>
+    <p class="subtitle">You don't have to act on every urge.</p>
+  </header>
+
+  <section class="card" aria-live="polite">
+    <div id="breathing">
+      <div class="step">01 · Create a little space</div>
+      <h2>Take three slow breaths.</h2>
+      <p class="description">Let your shoulders soften. Breathe gently, without forcing or holding your breath.</p>
+      <div class="breath-area">
+        <div class="orb-wrap">
+          <div id="orb" class="orb"></div>
+          <div id="breathLabel" class="breath-label">Breathe in gently</div>
+        </div>
+      </div>
+      <div id="breathTimer" class="timer">Breath 1 of 3 · Inhale for 4 seconds</div>
+    </div>
+
+    <div id="reflection" class="hidden">
+      <div class="step">02 · Notice what is happening</div>
+      <h2 id="reflectionTitle">An urge is not a command.</h2>
+      <p class="description" id="reflectionDescription">You can notice the pull to browse without following it.</p>
+      <div class="prompt">
+        <strong id="promptTitle">Urge surfing</strong>
+        <p id="promptText">Notice the urge. Let it rise and fall without obeying it.</p>
+      </div>
+      <p class="timer" id="reflectionTimer" style="margin-top:15px">Stay with this thought for a moment.</p>
+    </div>
+
+    <div id="return" class="hidden">
+      <div class="step">03 · Return to your intention</div>
+      <div class="final-mark" aria-hidden="true">↗</div>
+      <h2>One small step is enough.</h2>
+      <p class="description">Bring to mind the task you chose before the urge to browse appeared. Make the next step small and begin there.</p>
+      <div class="prompt">
+        <strong>A reminder</strong>
+        <p id="intention">I can feel an urge and still choose what I do next. I return without judging myself.</p>
+      </div>
+      <p class="timer" style="margin-top:16px">Now switch back to your work or close this tab.</p>
+    </div>
+    <div class="progress"><span id="progressBar"></span></div>
+  </section>
+  <p class="tiny">No guilt. No judgement. Just a chance to choose again.</p>
+</main>
+<script>
+(() => {
+  const exercises = [
+    {
+      title: "An urge is not a command.",
+      description: "You can notice the pull to browse without following it.",
+      promptTitle: "Urge surfing",
+      promptText: "Notice where the urge shows up in your body. Is it restless, tight, or simply an expectation? Watch it like a wave. You don't need to push it away or obey it."
+    },
+    {
+      title: "Name the thought. Don't become it.",
+      description: "A thought can be present without becoming an instruction.",
+      promptTitle: "Cognitive defusion",
+      promptText: "Try adding these words: “I'm having the thought that I need to check that website.” Notice the little space between the thought and your next action."
+    },
+    {
+      title: "What might I be avoiding?",
+      description: "Distraction sometimes offers quick relief from discomfort.",
+      promptTitle: "A curious check-in",
+      promptText: "Am I bored, tired, uncertain, anxious, or avoiding a difficult next step? No need to judge the answer. If the task feels too big, make the next step smaller."
+    },
+    {
+      title: "Bring your attention back gently.",
+      description: "Attention wanders. The practice is noticing and returning.",
+      promptTitle: "Mindful attention",
+      promptText: "Notice three things you can see. Feel your feet on the floor. Hear one sound around you. Now choose where you want to place your attention next."
+    }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let phase = "inhale", round = 1, remaining = 4, interval = null;
+
+  function show(id, progress) {
+    ["breathing", "reflection", "return"].forEach(name => $(name).classList.toggle("hidden", name !== id));
+    $("progressBar").style.width = progress + "%";
+  }
+
+  function setBreathPhase(nextPhase) {
+    phase = nextPhase;
+    const orb = $("orb");
+    orb.classList.toggle("inhale", phase === "inhale");
+    orb.classList.toggle("exhale", phase === "exhale");
+    $("breathLabel").textContent = phase === "inhale" ? "Breathe in gently" : "Breathe out slowly";
+    remaining = phase === "inhale" ? 4 : 6;
+    $("breathTimer").textContent = `Breath ${round} of 3 · ${phase === "inhale" ? "Inhale" : "Exhale"} for ${remaining} seconds`;
+  }
+
+  function beginReflection() {
+    clearInterval(interval);
+    $("orb").classList.remove("inhale", "exhale");
+    let last = -1;
+    try { last = Number(sessionStorage.getItem("pauseLastExercise") ?? -1); } catch (_) {}
+    let choices = exercises.map((_, i) => i).filter(i => i !== last);
+    const chosen = choices[Math.floor(Math.random() * choices.length)];
+    try { sessionStorage.setItem("pauseLastExercise", String(chosen)); } catch (_) {}
+    const item = exercises[chosen];
+    $("reflectionTitle").textContent = item.title;
+    $("reflectionDescription").textContent = item.description;
+    $("promptTitle").textContent = item.promptTitle;
+    $("promptText").textContent = item.promptText;
+    show("reflection", 72);
+
+    let seconds = 12;
+    $("reflectionTimer").textContent = "Take a moment with this thought.";
+    const reflectionInterval = setInterval(() => {
+      seconds--;
+      if (seconds <= 0) {
+        clearInterval(reflectionInterval);
+        show("return", 100);
+      }
+    }, 1000);
+  }
+
+  // Start automatically: 3 gentle cycles of 4 seconds in and 6 seconds out.
+  show("breathing", 8);
+  setBreathPhase("inhale");
+  interval = setInterval(() => {
+    remaining--;
+    if (remaining > 0) {
+      $("breathTimer").textContent = `Breath ${round} of 3 · ${phase === "inhale" ? "Inhale" : "Exhale"} · ${remaining}s`;
+      return;
+    }
+    if (phase === "inhale") {
+      setBreathPhase("exhale");
+    } else if (round < 3) {
+      round++;
+      setBreathPhase("inhale");
+    } else {
+      clearInterval(interval);
+      beginReflection();
+    }
+  }, 1000);
+})();
+</script>
+</body>
+</html>
